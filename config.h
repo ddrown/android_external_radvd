@@ -34,7 +34,7 @@
 #define HAVE_NET_IF_ARP_H 1
 
 /* Define to 1 if you have the <net/if_dl.h> header file. */
-#define HAVE_NET_IF_DL_H 1
+#undef HAVE_NET_IF_DL_H
 
 /* Define to 1 if you have the <net/if_types.h> header file. */
 #define HAVE_NET_IF_TYPES_H 1
