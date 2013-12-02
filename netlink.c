@@ -30,7 +30,7 @@
 
 void process_netlink_msg(int sock)
 {
-	int len;
+	ssize_t len;
 	char buf[4096];
 	struct iovec iov = { buf, sizeof(buf) };
 	struct sockaddr_nl sa;
@@ -44,7 +44,7 @@ void process_netlink_msg(int sock)
 		flog(LOG_ERR, "recvmsg failed: %s", strerror(errno));
 	}
 
-	for (nh = (struct nlmsghdr *) buf; NLMSG_OK (nh, len); nh = NLMSG_NEXT (nh, len)) {
+	for (nh = (struct nlmsghdr *) buf; NLMSG_OK (nh, (size_t)len); nh = NLMSG_NEXT (nh, len)) {
 		/* The end of multipart message. */
 		if (nh->nlmsg_type == NLMSG_DONE)
 			return;

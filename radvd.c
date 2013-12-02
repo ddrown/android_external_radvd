@@ -33,7 +33,6 @@ char usage_str[] = {
 "  -c, --configtest       Parse the config file and exit.\n"
 "  -C, --config=PATH      Sets the config file.  Default is /etc/radvd.conf.\n"
 "  -d, --debug=NUM        Sets the debug level.  Values can be 1, 2, 3, 4 or 5.\n"
-"  -f, --facility=NUM     Sets the logging facility.\n"
 "  -h, --help             Show this help screen.\n"
 "  -l, --logfile=PATH     Sets the log file.\n"
 "  -m, --logmethod=X      Sets the log method to one of: syslog, stderr, stderr_syslog, logfile, or none.\n"
@@ -51,7 +50,6 @@ struct option prog_opt[] = {
 	{"pidfile", 1, 0, 'p'},
 	{"logfile", 1, 0, 'l'},
 	{"logmethod", 1, 0, 'm'},
-	{"facility", 1, 0, 'f'},
 	{"username", 1, 0, 'u'},
 	{"chrootdir", 1, 0, 't'},
 	{"version", 0, 0, 'v'},
@@ -65,7 +63,7 @@ struct option prog_opt[] = {
 
 char usage_str[] =
 	"[-hsvcn] [-d level] [-C config_file] [-m log_method] [-l log_file]\n"
-	"\t[-f facility] [-p pid_file] [-u username] [-t chrootdir]";
+	"\t [-p pid_file] [-u username] [-t chrootdir]";
 
 #endif
 
@@ -102,7 +100,6 @@ main(int argc, char *argv[])
 {
 	int c, log_method;
 	char *logfile, *pidfile;
-	int facility;
 	char *username = NULL;
 	char *chrootdir = NULL;
 	int configtest = 0;
@@ -118,7 +115,6 @@ main(int argc, char *argv[])
 	log_method = L_STDERR_SYSLOG;
 	logfile = PATH_RADVD_LOG;
 	conf_file = PATH_RADVD_CONF;
-	facility = LOG_DAEMON;
 	pidfile = PATH_RADVD_PID;
 
 	/* parse args */
@@ -135,9 +131,6 @@ main(int argc, char *argv[])
 			break;
 		case 'd':
 			set_debuglevel(atoi(optarg));
-			break;
-		case 'f':
-			facility = atoi(optarg);
 			break;
 		case 'l':
 			logfile = optarg;
@@ -223,11 +216,6 @@ main(int argc, char *argv[])
 
 	if (configtest) {
 		log_method = L_STDERR;
-	}
-
-	if (log_open(log_method, pname, logfile, facility) < 0) {
-		perror("log_open");
-		exit(1);
 	}
 
 	if (!configtest) {
@@ -363,7 +351,7 @@ void write_pid_file(char const * pidfile)
 	snprintf(pidstr, sizeof(pidstr), "%ld\n", (long)getpid());
 
 	ret = write(fd, pidstr, strlen(pidstr));
-	if (ret != strlen(pidstr))
+	if (ret != (int)strlen(pidstr))
 	{
 		flog(LOG_ERR, "cannot write radvd pid file, terminating: %s", strerror(errno));
 		exit(1);
@@ -645,6 +633,7 @@ void reload_config(void)
 void
 sighup_handler(int sig)
 {
+	(void)sig; // unused
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGHUP, sighup_handler);
 
@@ -654,6 +643,7 @@ sighup_handler(int sig)
 void
 sigterm_handler(int sig)
 {
+	(void)sig; // unused
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGTERM, sigterm_handler);
 
@@ -667,6 +657,7 @@ sigterm_handler(int sig)
 void
 sigint_handler(int sig)
 {
+	(void)sig; // unused
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGINT, sigint_handler);
 
@@ -710,6 +701,7 @@ void reset_prefix_lifetimes(void)
 
 void sigusr1_handler(int sig)
 {
+	(void)sig; // unused
 
 	/* Linux has "one-shot" signals, reinstall the signal handler */
 	signal(SIGUSR1, sigusr1_handler);
@@ -777,14 +769,10 @@ int
 check_ip6_forwarding(void)
 {
 	int value;
-#ifndef __BIONIC__
-	int forw_sysctl[] = { SYSCTL_IP6_FORWARDING };
-	size_t size = sizeof(value);
-#endif
 	FILE *fp = NULL;
 	static int warned = 0;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__BIONIC__)
 	fp = fopen(PROC_SYS_IP6_FORWARDING, "r");
 	if (fp) {
 		int rc = fscanf(fp, "%d", &value);
@@ -798,16 +786,7 @@ check_ip6_forwarding(void)
 		flog(LOG_DEBUG, "Correct IPv6 forwarding procfs entry not found, "
 	                       "perhaps the procfs is disabled, "
 	                        "or the kernel interface has changed?");
-#endif /* __linux__ */
-
-#ifndef __BIONIC__
-	if (!fp && sysctl(forw_sysctl, sizeof(forw_sysctl)/sizeof(forw_sysctl[0]),
-	    &value, &size, NULL, 0) < 0) {
-		flog(LOG_DEBUG, "Correct IPv6 forwarding sysctl branch not found, "
-			"perhaps the kernel interface has changed?");
-		return(0);	/* this is of advisory value only */
-	}
-#endif
+#endif /* __linux__ || __BIONIC__ */
 
 	if (value != 1 && !warned) {
 		warned = 1;
@@ -845,7 +824,6 @@ version(void)
 	fprintf(stderr, "  default config file		\"%s\"\n", PATH_RADVD_CONF);
 	fprintf(stderr, "  default pidfile		\"%s\"\n", PATH_RADVD_PID);
 	fprintf(stderr, "  default logfile		\"%s\"\n", PATH_RADVD_LOG);
-	fprintf(stderr, "  default syslog facility	%d\n", LOG_DAEMON);
 	fprintf(stderr, "Please send bug reports or suggestions to %s.\n",
 		CONTACT_EMAIL);
 

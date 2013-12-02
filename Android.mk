@@ -5,8 +5,7 @@ LOCAL_SRC_FILES := log.c recv.c socket.c util.c device-common.c interface.c proc
 
 LOCAL_MODULE := radvd
 
-LOCAL_CFLAGS := -O2 -g -W -Wall -DINET6=1 -DPATH_RADVD_CONF=\"$(PATH_RADVD_CONF)\" 
+LOCAL_CFLAGS := -O2 -g -DINET6=1 -DPATH_RADVD_CONF=\"$(PATH_RADVD_CONF)\" -Wall -Werror -Wno-unused-function
 LOCAL_SYSTEM_SHARED_LIBRARIES := libc
-LOCAL_MODULE_TAGS := debug
 
 include $(BUILD_EXECUTABLE)

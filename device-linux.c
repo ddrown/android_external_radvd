@@ -239,7 +239,7 @@ set_interface_var(const char *iface,
 {
 	FILE *fp;
 	char spath[64+IFNAMSIZ];	/* XXX: magic constant */
-	if (snprintf(spath, sizeof(spath), var, iface) >= sizeof(spath))
+	if (snprintf(spath, sizeof(spath), var, iface) >= (int)sizeof(spath))
 		return -1;
 
 	/* No path traversal */

@@ -93,7 +93,7 @@ static void
 decrement_lifetime(const time_t secs, uint32_t *lifetime)
 {
 
-	if (*lifetime > secs) {
+	if (*lifetime > (uint32_t)secs) {
 		*lifetime -= secs;	
 	} else {
 		*lifetime = 0;

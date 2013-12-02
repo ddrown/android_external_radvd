@@ -44,7 +44,7 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 	 * can this happen?
 	 */
 
-	if (len < sizeof(struct icmp6_hdr))
+	if (len < (int)sizeof(struct icmp6_hdr))
 	{
 		flog(LOG_WARNING, "received icmpv6 packet with invalid length (%d) from %s",
 			len, addr_str);
@@ -66,7 +66,7 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (icmph->icmp6_type == ND_ROUTER_ADVERT)
 	{
-		if (len < sizeof(struct nd_router_advert)) {
+		if (len < (int)sizeof(struct nd_router_advert)) {
 			flog(LOG_WARNING, "received icmpv6 RA packet with invalid length (%d) from %s",
 				len, addr_str);
 			return;
@@ -80,7 +80,7 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 
 	if (icmph->icmp6_type == ND_ROUTER_SOLICIT)
 	{
-		if (len < sizeof(struct nd_router_solicit)) {
+		if (len < (int)sizeof(struct nd_router_solicit)) {
 			flog(LOG_WARNING, "received icmpv6 RS packet with invalid length (%d) from %s",
 				len, addr_str);
 			return;
@@ -100,7 +100,7 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
 
 	for (iface = ifacel; iface; iface=iface->next)
 	{
-		if (iface->if_index == pkt_info->ipi6_ifindex)
+		if ((int)iface->if_index == pkt_info->ipi6_ifindex)
 		{
 			break;
 		}
@@ -308,7 +308,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 		{
 		case ND_OPT_MTU:
 			mtu = (struct nd_opt_mtu *)opt_str;
-			if (len < sizeof(*mtu))
+			if (len < (int)sizeof(*mtu))
 				return;
 
 			if (iface->AdvLinkMTU && (ntohl(mtu->nd_opt_mtu_mtu) != iface->AdvLinkMTU))
@@ -319,7 +319,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_PREFIX_INFORMATION:
 			pinfo = (struct nd_opt_prefix_info *) opt_str;
-			if (len < sizeof(*pinfo))
+			if (len < (int)sizeof(*pinfo))
 				return;
 			preferred = ntohl(pinfo->nd_opt_pi_preferred_time);
 			valid = ntohl(pinfo->nd_opt_pi_valid_time);
@@ -375,7 +375,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_RDNSS_INFORMATION:
 			rdnssinfo = (struct nd_opt_rdnss_info_local *) opt_str;
-			if (len < sizeof(*rdnssinfo))
+			if (len < (int)sizeof(*rdnssinfo))
 				return;
 			count = rdnssinfo->nd_opt_rdnssi_len;
 
@@ -417,11 +417,11 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
 			break;
 		case ND_OPT_DNSSL_INFORMATION:
 			dnsslinfo = (struct nd_opt_dnssl_info_local *) opt_str;
-			if (len < sizeof(*dnsslinfo))
+			if (len < (int)sizeof(*dnsslinfo))
 				return;
 
 			suffix[0] = '\0';
-			for (offset = 0; offset < (dnsslinfo->nd_opt_dnssli_len-1)*8;) {
+			for (offset = 0; (int)offset < (dnsslinfo->nd_opt_dnssli_len-1)*8;) {
 				if (&dnsslinfo->nd_opt_dnssli_suffixes[offset] - opt_str >= len)
 					return;
 				label_len = dnsslinfo->nd_opt_dnssli_suffixes[offset++];

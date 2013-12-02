@@ -1577,7 +1577,6 @@ YY_RULE_SETUP
 case 62:
 YY_RULE_SETUP
 #line 154 "scanner.l"
-ECHO;
 	YY_BREAK
 #line 1583 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
